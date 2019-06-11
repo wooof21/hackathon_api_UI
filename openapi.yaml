@@ -1,0 +1,1218 @@
+openapi: 3.0.0
+info:
+  description: BMO Hackathon API
+  version: 1.0.0
+  title: BMO Hackathon API
+servers:
+  - url: 'https://'
+  - url: 'http://dev-env.uspubdbacd.ca-central-1.elasticbeanstalk.com/'
+    description: API DEV base url
+  - url: 'http://prod-env.uspubdbacd.ca-central-1.elasticbeanstalk.com/'
+    description: API PROD base url
+tags:
+  - name: Account
+    description: User Account Related APIs
+  - name: Payment
+    description: Account Payments Related APIs
+  - name: Credit Card
+    description: Credit Card Info
+  - name: Third Party
+    description: Third Parth Services
+
+paths:
+  /account/summary:
+    get:
+      tags:
+        - Account
+      description: Get All Accounts Summary
+      security:
+        - BasicAuth: []
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  summary:
+                    type: object
+                    properties:
+                      customer:
+                        "$ref": "#/components/schemas/customer"
+                      accounts:
+                        "$ref": "#/components/schemas/summary_all_accounts"
+                            
+  /account/{accountId}/summary:
+    get:
+      tags:
+        - Account
+      description: Get Account Summary By Account ID
+      security:
+        - BasicAuth: []
+      parameters: 
+        - in: path
+          name: accountId
+          schema:
+            type: string
+          required: true
+          description: chequing or saving or credit card account id
+      responses:
+        '200':
+          description: response message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  summary:
+                    type: object
+                    properties:
+                      customer:
+                        "$ref": "#/components/schemas/customer"
+                      account:
+                        "$ref": "#/components/schemas/all_account_details"
+                      last_transaction:
+                        type: number
+                      last_transaction_at:
+                        type: string
+                      last_transaction_status:
+                        type: string
+                      
+                      
+        default:
+          description: Unexpected error
+          
+  /account/{accountId}/transactions:
+    get:
+      tags:
+        - Account
+      security:
+        - BasicAuth: []
+      parameters: 
+        - in: path
+          name: accountId
+          schema:
+            type: string
+          required: true
+          description: chequing or saving account id
+      responses:
+        '200':
+          description: response message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  transactions:
+                    type: array
+                    items:
+                      oneOf:
+                        - "$ref": "#/components/schemas/bank_account_transactions"
+                        - "$ref": "#/components/schemas/credit_card_account_transactions"
+                          
+  /payment/bill_pay:
+    post:
+      tags:
+        - Payment
+      security:
+        - BasicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from:
+                  type: object
+                  properties:
+                    account_type:
+                      type: string
+                    account_id:
+                      type: string
+                to:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    account_id:
+                      type: string
+                creation_date:
+                  type: string
+                execution_date:
+                  type: string
+                payment_type:
+                  type: string
+                frequency:
+                  type: string
+                description:
+                  type: string
+                amount:
+                  type: number
+                currency:
+                  type: string
+                message:
+                  type: string
+                        
+                    
+                
+      responses:
+        '200':
+          description: response message
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  bill:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      status:
+                        type: string
+                      from:
+                        type: object
+                        properties:
+                          account_type:
+                            type: string
+                          account_id:
+                            type: string
+                      to:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          account_id:
+                            type: string
+                      creation_date:
+                        type: string
+                      execution_date:
+                        type: string
+                      payment_type:
+                        type: string
+                      frequency:
+                        type: string
+                      description:
+                        type: string
+                      amount:
+                        type: number
+                      currency:
+                        type: string
+                      message:
+                        type: string
+                    
+  /payment/transfers/etransfer:
+    post:
+      tags: 
+        - Payment
+      security:
+        - BasicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from:
+                  type: object
+                  properties:
+                    account_type:
+                      type: string
+                    account_id:
+                      type: string
+                to:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    account_id:
+                      type: string
+                type:
+                  type: string
+                creation_date:
+                  type: string
+                execution_date:
+                  type: string
+                amount:
+                  type: number
+                currency:
+                  type: string
+                description:
+                  type: string
+                message:
+                  type: string
+                reason:
+                  type: string
+                passcode:
+                  type: string
+                    
+                
+      responses:
+        '200':
+          description: response message
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  payment:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      creation_date:
+                        type: string
+                      execution_date:
+                        type: string
+                      amount:
+                        type: number
+                      currency:
+                        type: string
+                      description:
+                        type: string
+                      message:
+                        type: string
+                      reason:
+                        type: string
+                      passcode:
+                        type: string
+                      from:
+                        type: object
+                        properties:
+                          account_type:
+                            type: string
+                          account_id:
+                            type: string
+                      to:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          account_id:
+                            type: string
+                    
+  /credit/account/summary:
+    get:
+      tags:
+        - Credit Card
+      description: Get ALl Credit Card Accounts Summary
+      security:
+        - BasicAuth: []
+      deprecated: true
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  summary:
+                    type: object
+                    properties:
+                      customer:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          firstname:
+                            type: string
+                          lastname:
+                            type: string
+                          birth_date:
+                            type: string
+                          email:
+                            type: string
+                          cellphone:
+                            type: string
+                          address:
+                            type: object
+                            properties:
+                              unit_number:
+                                type: string
+                              street:
+                                type: string
+                              city:
+                                type: string
+                              country:
+                                type: string
+                              postcode:
+                                type: string
+                      accounts:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            account_id:
+                              type: string
+                            account_number:
+                              type: string
+                            card_number:
+                              type: string
+                            card_type:
+                              type: string
+                            status:
+                              type: string
+                            creation_date:
+                              type: string
+                            expire_date:
+                              type: string
+                            currency:
+                              type: string
+                            max_limit:
+                              type: number
+                            current_limit:
+                              type: number
+                            current_balance:
+                              type: number
+                            due_balance:
+                              type: number
+                            available_credit:
+                              type: number
+                            payment_due_date:
+                              type: string
+  
+  /credit/account/{accountId}/summary:
+    get:
+      tags: 
+        - Credit Card
+      description: Get Credit Card Account Summary By ID
+      security:
+        - BasicAuth: []
+      deprecated: true
+      parameters: 
+        - in: path
+          name: accountId
+          schema:
+            type: string
+          required: true
+          description: credit card account id
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  summary:
+                    type: object
+                    properties:
+                      customer:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          firstname:
+                            type: string
+                          lastname:
+                            type: string
+                          birth_date:
+                            type: string
+                          email:
+                            type: string
+                          cellphone:
+                            type: string
+                          address:
+                            type: object
+                            properties:
+                              unit_number:
+                                type: string
+                              street:
+                                type: string
+                              city:
+                                type: string
+                              country:
+                                type: string
+                              postcode:
+                                type: string
+                      account:
+                        type: object
+                        properties:
+                          account_id:
+                            type: string
+                          account_number:
+                            type: string
+                          card_number:
+                            type: string
+                          card_type:
+                            type: string
+                          status:
+                            type: string
+                          creation_date:
+                            type: string
+                          expire_date:
+                            type: string
+                          currency:
+                            type: string
+                          max_limit:
+                            type: number
+                          current_limit:
+                            type: number
+                          current_balance:
+                            type: number
+                          due_balance:
+                            type: number
+                          available_credit:
+                            type: number
+                          payment_due_date:
+                            type: string
+                            
+  /credit/account/{accountId}/transactions:
+    get:
+      tags:
+        - Credit Card
+      security:
+        - BasicAuth: []
+      deprecated: true
+      parameters: 
+        - in: path
+          name: accountId
+          schema:
+            type: string
+          required: true
+          description: credit card account id
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  transactions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        transaction_id:
+                          type: string
+                        transaction_type:
+                          type: string
+                        title:
+                          type: string
+                        status:
+                          type: string
+                        creation_date:
+                          type: string
+                        authorize_date:
+                          type: string
+                        payer_id:
+                          type: string
+                        receiver_id:
+                          type: string
+                        amount:
+                          type: number
+                        current_balance:
+                          type: number
+                        currency:
+                          type: string
+                        signed:
+                          type: boolean
+                          
+  /external/tone-analyze:
+    post:
+      tags: 
+        - 3rd Party
+      description: 3rd Party Services API
+      security:
+        - BasicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  tone:
+                    "$ref": "#/components/schemas/tone_analyze_response"
+                    
+  /external/personality-insights:
+    post:
+      tags: 
+        - 3rd Party
+      description: 3rd Party Services API
+      security:
+        - BasicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  insights:
+                    "$ref": "#/components/schemas/insights_response"
+                    
+  /external/weather:
+    post:
+      tags: 
+        - 3rd Party
+      description: 3rd Party Services API
+      security:
+        - BasicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                city:
+                  type: string
+                cityId:
+                  type: string
+                coord:
+                  type: object
+                  properties:
+                    lat:
+                      type: string
+                    lon:
+                      type: string
+                countryCode:
+                  type: string
+                zipcode:
+                  type: string
+                unit:
+                  type: string
+                  enum:
+                    - ""
+                    - "imperial"
+                    - "metric"
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  weather:
+                    "$ref": "#/components/schemas/weather_response"
+                    
+  /external/forecast:
+    post:
+      tags: 
+        - 3rd Party
+      description: Get Weather Forecast For 5 Days With Data Every 3 Hours 
+      security:
+        - BasicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                city:
+                  type: string
+                cityId:
+                  type: string
+                coord:
+                  type: object
+                  properties:
+                    lat:
+                      type: string
+                    lon:
+                      type: string
+                countryCode:
+                  type: string
+                zipcode:
+                  type: string
+                unit:
+                  type: string
+                  enum:
+                    - ""
+                    - "imperial"
+                    - "metric"
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  weather:
+                    type: object
+                    properties:
+                      cod:
+                        type: number
+                      message:
+                        type: number
+                      cnt:
+                        type: number
+                      city:
+                        "$ref": "#/components/schemas/weather_forecast_response_city"
+                      list:
+                        type: array
+                        items:
+                          "$ref": "#/components/schemas/weather_forecast_response_list"
+                        
+                          
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    BearerAuth:
+      type: http
+      scheme: bearer
+  
+  schemas:
+    customer:
+      type: object
+      properties:
+        id:
+          type: string
+        firstname:
+          type: string
+        lastname:
+          type: string
+        birth_date:
+          type: string
+          format: "date"
+        email:
+          type: string
+        cellphone:
+          type: string
+        address:
+          type: object
+          properties:
+            unit_number:
+              type: string
+            street:
+              type: string
+            city:
+              type: string
+            province:
+              type: string
+            country:
+              type: string
+            postcode:
+              type: string
+    
+    all_account_details:
+      type: object
+      properties:
+        account_id:
+          type: string
+        account_number:
+          type: string
+        account_type:
+          type: string
+        status:
+          type: string
+        creation_date:
+          type: string
+          format: "date-time"
+        bank_branch:
+          type: string
+        banlance:
+          type: number
+        currency:
+          type: string
+          
+        
+        card_number:
+          type: string
+          nullable: true
+        card_type:
+          type: string
+          nullable: true
+        expire_date:
+          type: string
+          nullable: true
+          format: "date-time"
+        max_limit:
+          type: number
+          nullable: true
+        current_limit:
+          type: number
+          nullable: true
+        current_balance:
+          type: number
+          nullable: true
+        due_balance:
+          type: number
+          nullable: true
+        available_credit:
+          type: number
+          nullable: true
+        payment_due_date:
+          type: string
+          nullable: true
+          format: "date-time"
+    
+    summary_all_accounts:
+      type: array
+      items:
+        "$ref": "#/components/schemas/all_account_details"
+    
+    bank_account_transactions:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+        transaction_type:
+          type: string
+        card_type:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+        creation_date:
+          type: string
+        authorize_date:
+          type: string
+        payer_account:
+          type: string
+        payer_id:
+          type: string
+        receiver_id:
+          type: string
+        amount:
+          type: number
+        current_balance:
+          type: number
+        currency:
+          type: string
+    
+    credit_card_account_transactions:
+      type: array
+      items:
+        type: object
+        properties:
+          transaction_id:
+            type: string
+          transaction_type:
+            type: string
+          card_type:
+            type: string
+          title:
+            type: string
+          status:
+            type: string
+          creation_date:
+            type: string
+          authorize_date:
+            type: string
+          payer_id:
+            type: string
+          receiver_id:
+            type: string
+          amount:
+            type: number
+          current_balance:
+            type: number
+          currency:
+            type: string
+          verified:
+            type: boolean
+            
+    
+    tone_analyze_tones:
+      type: array
+      items:
+        type: object
+        properties:
+          score:
+            type: number
+          tone_id:
+            type: string
+          tone_name:
+            type: string
+      
+    tone_analyze_response:
+      type: object
+      properties:
+        document_tone:
+          type: object
+          properties:
+            tones:
+              "$ref": "#/components/schemas/tone_analyze_tones"
+        sentences_tone:
+          type: array
+          items:
+            type: object
+            properties:
+              sentence_id:
+                type: number
+              text:
+                type: string
+              tones:
+                "$ref": "#/components/schemas/tone_analyze_tones"
+     
+    insights_personality_children_item:
+      type: object
+      properties:
+        trait_id:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        percentile:
+          type: number
+        raw_score:
+          type: number
+        significant:
+          type: boolean
+          
+    insights_personality_item:
+      type: object
+      properties:
+        trait_id:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        percentile:
+          type: number
+        raw_score:
+          type: number
+        significant:
+          type: boolean
+        children:
+          type: array
+          items:
+            "$ref": "#/components/schemas/insights_personality_children_item"
+            
+    insights_behavior_item:
+      type: object
+      properties:
+        trait_id:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        percentage:
+          type: number
+          
+    insights_conumption_preference_item:
+      type: object
+      properties:
+        consumption_preference_id:
+          type: string
+        name:
+          type: string
+        score:
+          type: number
+        
+    insights_consumption_item:
+      type: object
+      properties:
+        consumption_preference_category_id:
+          type: string
+        name:
+          type: string
+        consumption_preferences:
+          type: array
+          items:
+            "$ref": "#/components/schemas/insights_conumption_preference_item"
+    insights_warnings_item:
+      type: object
+      properties:
+        warning_id:
+          type: string
+        message:
+          type: string
+          
+    insights_response:
+      type: object
+      properties:
+        word_count:
+          type: number
+        word_count_message:
+          type: string
+        processed_language:
+          type: string
+        personality:
+          type: array
+          items:
+            "$ref": "#/components/schemas/insights_personality_item"
+        needs:
+          type: array
+          items:
+            "$ref": "#/components/schemas/insights_personality_children_item"
+        values:
+          type: array
+          items:
+            "$ref": "#/components/schemas/insights_personality_children_item"
+        behavior:
+          type: array
+          items:
+            "$ref": "#/components/schemas/insights_behavior_item"
+        consumption_preferences:
+          type: array
+          items:
+            "$ref": "#/components/schemas/insights_consumption_item"
+        warnings:
+          type: array
+          items:
+            "$ref": "#/components/schemas/insights_warnings_item"
+          
+            
+        
+               
+    weather_response_weather:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: number
+          main:
+            type: string
+          description:
+            type: string
+          icon:
+            type: string
+            
+    weather_response_main:
+      type: object
+      properties:
+        temp:
+          type: number
+        pressure:
+          type: number
+        humidity:
+          type: number
+        temp_min:
+          type: number
+        temp_max:
+          type: number
+        sea_level:
+          type: number
+        grnd_level:
+          type: number
+          
+    weather_response_wind:
+      type: object
+      properties:
+        speed:
+          type: number
+        deg:
+          type: number
+        
+    weather_response_clouds:
+      type: object
+      properties:
+        all:
+          type: number
+          
+    weather_response_sys:
+      type: object
+      properties:
+        message:
+          type: number
+        sunrise:
+          type: number
+        sunset:
+          type: number
+        country:
+          type: string
+          
+    weather_response:
+      type: object
+      properties:
+        coord:
+          type: object
+          properties:
+            lat:
+              type: string
+            lon:
+              type: string
+        weather:
+          "$ref": "#/components/schemas/weather_response_weather"
+        base:
+          type: string
+        main:
+          "$ref": "#/components/schemas/weather_response_main"
+        wind:
+          "$ref": "#/components/schemas/weather_response_wind"
+        clouds:
+          "$ref": "#/components/schemas/weather_response_clouds"
+        dt:
+          type: number
+        sys:
+          "$ref": "#/components/schemas/weather_response_sys"
+        timezone:
+          type: number
+        id:
+          type: number
+        name:
+          type: string
+        cod:
+          type: number
+          
+    weather_forecast_response_city:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        coord:
+          type: object
+          properties:
+            lat:
+              type: string
+            lon:
+              type: string
+        country:
+          type: string
+        timezone:
+          type: number
+
+    weather_forecast_response_main:
+      type: object
+      properties:
+        temp:
+          type: number
+        pressure:
+          type: number
+        humidity:
+          type: number
+        temp_min:
+          type: number
+        temp_max:
+          type: number
+        sea_level:
+          type: number
+        grnd_level:
+          type: number
+        temp_kf:
+          type: number
+          
+    weather_forecast_response_list:
+      type: object
+      properties:
+        dt:
+          type: number
+        dt_txt:
+          type: string
+        main:
+          "$ref": "#/components/schemas/weather_forecast_response_main"
+        weather:
+          type: array
+          items:
+            "$ref": "#/components/schemas/weather_response_weather"
+        clouds:
+          "$ref": "#/components/schemas/weather_response_clouds"
+        wind:
+          "$ref": "#/components/schemas/weather_response_wind"
+        sys:
+          type: object
+          properties:
+            pod:
+              type: string
+          
+        
+          
+      
+              
+        
+      
+
+                      
